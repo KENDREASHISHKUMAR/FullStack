@@ -1,0 +1,181 @@
+test
+
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+
+const QuestionTest = () => {
+    const [questions, setQuestions] = useState([]);
+    const [answers, setAnswers] = useState({});
+    const [submitted, setSubmitted] = useState(false);
+
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            try {
+                const response = await axios.get('http://localhost:8080/api/questions');
+                setQuestions(response.data);
+            } catch (error) {
+                console.error("Error fetching questions:", error);
+            }
+        };
+        fetchQuestions();
+    }, []);
+
+    const handleOptionChange = (questionId, selectedOption) => {
+        setAnswers({ ...answers, [questionId]: selectedOption });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setSubmitted(true);
+    };
+
+    return (
+        <div>
+            <h2>Take the Test</h2>
+            <form onSubmit={handleSubmit}>
+                {questions.map((question) => (
+                    <div key={question.id}>
+                        <p>{question.questionText}</p>
+                        <label>
+                            <input
+                                type="radio"
+                                name={question.id}
+                                value="A"
+                                onChange={() => handleOptionChange(question.id, 'A')}
+                                disabled={submitted}
+                            />
+                            {question.optionA}
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name={question.id}
+                                value="B"
+                                onChange={() => handleOptionChange(question.id, 'B')}
+                                disabled={submitted}
+                            />
+                            {question.optionB}
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name={question.id}
+                                value="C"
+                                onChange={() => handleOptionChange(question.id, 'C')}
+                                disabled={submitted}
+                            />
+                            {question.optionC}
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name={question.id}
+                                value="D"
+                                onChange={() => handleOptionChange(question.id, 'D')}
+                                disabled={submitted}
+                            />
+                            {question.optionD}
+                        </label>
+                    </div>
+                ))}
+                <button type="submit" disabled={submitted}>Submit</button>
+            </form>
+            {submitted && (
+                <div>
+                    <h3>Results:</h3>
+                    {questions.map((question) => (
+                        <p key={question.id}>
+                            {question.questionText} - Correct Answer: {question.correctOption}, 
+                            Your Answer: {answers[question.id] || 'Not Answered'}
+                        </p>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default QuestionTest;
+
+
+
+
+form 
+
+
+
+// src/components/QuestionForm.js
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const QuestionForm = () => {
+    const [question, setQuestion] = useState({
+        questionText: '',
+        optionA: '',
+        optionB: '',
+        optionC: '',
+        optionD: '',
+        correctOption: ''
+    });
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setQuestion({ ...question, [name]: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await axios.post('http://localhost:8080/api/questions', question, {
+                headers: { "Content-Type": "application/json" }
+            });
+            setQuestion({
+                questionText: '',
+                optionA: '',
+                optionB: '',
+                optionC: '',
+                optionD: '',
+                correctOption: ''
+            });
+        } catch (error) {
+            console.error("Error submitting question:", error);
+            alert("Failed to submit question. Check backend logs.");
+        }
+    };
+    
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <input type="text" name="questionText" value={question.questionText} onChange={handleChange} placeholder="Question" required />
+            <input type="text" name="optionA" value={question.optionA} onChange={handleChange} placeholder="Option A" required />
+            <input type="text" name="optionB" value={question.optionB} onChange={handleChange} placeholder="Option B" required />
+            <input type="text" name="optionC" value={question.optionC} onChange={handleChange} placeholder="Option C" required />
+            <input type="text" name="optionD" value={question.optionD} onChange={handleChange} placeholder="Option D" required />
+            <input type="text" name="correctOption" value={question.correctOption} onChange={handleChange} placeholder="Correct Option (A/B/C/D)" required />
+            <button type="submit">Add Question</button>
+        </form>
+    );
+};
+
+export default QuestionForm;
+
+
+
+application
+
+
+import React from 'react';
+import QuestionForm from './components/QuestionForm';
+import QuestionTest from './components/QuestionTest';
+
+const App = () => {
+    return (
+        <div>
+            <h1>Quiz Application</h1>
+            <QuestionForm />
+            <QuestionTest />
+        </div>
+    );
+};
+
+export default App;
